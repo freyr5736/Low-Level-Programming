@@ -74,3 +74,59 @@ int main() {
     sem_destroy(&sem_crit);
     return 0;
 }
+
+
+// #include <iostream>
+// #include <thread>
+// #include <deque>
+// #include <semaphore>
+// using namespace std;
+
+// constexpr int CAP = 50;
+
+// deque<int> q;
+// std::counting_semaphore<CAP> empty_slots{CAP};
+// std::counting_semaphore<CAP> full_slots{0};
+// std::binary_semaphore crit{1};
+
+// int consumers_total = 2;
+
+// void producer(int n) {
+//     for (int v = n; v >= 1; --v) {
+//         empty_slots.acquire();
+//         crit.acquire();
+//         q.push_back(v);
+//         cout << v << " produced\n";
+//         crit.release();
+//         full_slots.release();
+//     }
+//     for (int i = 0; i < consumers_total; ++i) {
+//         empty_slots.acquire();
+//         crit.acquire();
+//         q.push_back(0);            // sentinel
+//         crit.release();
+//         full_slots.release();
+//     }
+// }
+
+// void consumer() {
+//     for (;;) {
+//         full_slots.acquire();
+//         crit.acquire();
+//         int v = q.back(); q.pop_back();
+//         crit.release();
+//         empty_slots.release();
+//         if (v == 0) {
+//             cout << "The End.\n";
+//             break;
+//         }
+//         cout << v << " consumed\n";
+//     }
+// }
+
+// int main() {
+//     thread t1(producer, 100);
+//     thread t2(consumer);
+//     thread t3(consumer);
+//     t1.join(); t2.join(); t3.join();
+// }
