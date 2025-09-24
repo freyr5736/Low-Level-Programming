@@ -4,7 +4,8 @@
 #include <thread>
 using namespace std;
 
-int count = 0;
+int for_count = 0;
+int until_count = 0;
 int failed = 0;
 timed_mutex m;
 
@@ -12,9 +13,9 @@ timed_mutex m;
 void for_increment() {
     for (int i = 0; i < 5; ++i) {
         if (m.try_lock_for(chrono::seconds(2))) {
-            ++count;
+            ++for_count;
             this_thread::sleep_for(chrono::seconds(1));
-            cout << "count=" << count << " entered by tid=" << this_thread::get_id()
+            cout << "count=" << for_count << " entered by tid=" << this_thread::get_id()
                  << "\n";
             m.unlock();
         } else {
@@ -30,9 +31,9 @@ void until_increment() {
     for (int i = 0; i < 5; ++i) {
         auto now = chrono::steady_clock::now();
         if (m.try_lock_until(now + chrono::seconds(2))) {
-            ++count;
+            ++until_count;
             this_thread::sleep_for(chrono::seconds(1));
-            cout << "count=" << count << " entered by tid=" << this_thread::get_id()
+            cout << "count=" << until_count << " entered by tid=" << this_thread::get_id()
                  << "\n";
             m.unlock();
         } else {
@@ -50,16 +51,14 @@ int main() {
     cout << "t1 id=" << t1.get_id() << "\n";
     cout << "t2 id=" << t2.get_id() << "\n";
     
-    count = 0;
     failed = 0;
 
     t1.join();
     t2.join();
     cout << endl << "Using try_lock_for \n";
-    cout << "counter incremented by " << count << "\n";
+    cout << "counter incremented by " << for_count << "\n";
     cout << "entry failed " << failed << " times\n" << endl;
 
-    count = 0;
     failed = 0;
 
     t1 = thread(until_increment);
@@ -68,7 +67,7 @@ int main() {
     t1.join();
     t2.join();
     cout <<endl<< "Using try_lock_until \n";
-    cout << "counter incremented by " << count << "\n";
+    cout << "counter incremented by " << until_count << "\n";
     cout << "entry failed " << failed << " times" << endl;
 
     return 0;

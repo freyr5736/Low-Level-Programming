@@ -12,15 +12,16 @@
 // std::mutex m;
 // long long heads = 0;
 // long long tails = 0;
-// double total_time = 0;
+// long long total_time = 0;
 // std::atomic<long long> flips = 0;
 
 // Level #1
+// using simple lock mechanism
 // void simulate_toss() {
 //     auto start_time = std::chrono::high_resolution_clock::now();
 //     for (long long i = 1; i <= 100000; ++i) {
 //         flips++;
-//         std::osyncstream out (std::cout);
+//         std::osyncstream out (std::cout); // this is a thread safe output stream
 //         out<<"\r"<<"flip "<<flips<<std::flush;
 //         m.lock();
 //         std::random_device rd;
@@ -36,11 +37,12 @@
 //     std::cout<<"\n";
 //     auto stop_time = std::chrono::high_resolution_clock::now();
 //     auto duration =
-//     std::chrono::duration_cast<std::chrono::microseconds>(stop_time -
-//     start_time); total_time +=  duration.count() / 1000000.0;
+//     std::chrono::duration_cast<std::chrono::microseconds>(stop_time -start_time); 
+//     total_time +=  duration.count();
 // }
 
 // Level #2
+// using local variables and scoped_lock to decrease overhead of locking
 // void simulate_toss() {
 //     auto start_time = std::chrono::high_resolution_clock::now();
 //     long long heads_local = 0, tails_local = 0;
@@ -64,14 +66,15 @@
 //     auto stop_time = std::chrono::high_resolution_clock::now();
 //     auto duration =
 //     std::chrono::duration_cast<std::chrono::microseconds>(stop_time - start_time); 
-//     total_time +=  (double)duration.count() / 1000000.0;
+//     total_time += duration.count();
 // }
 
 // Level #3
+// using atomic variables to avoid locking altogether
 std::atomic<long long> heads{0};
 std::atomic<long long> tails{0};
 std::atomic<long long> flips{0};
-std::atomic<double> total_time{0};
+std::atomic<long long> total_time{0};
 
 void simulate_toss() {
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -94,7 +97,7 @@ void simulate_toss() {
     tails.fetch_add(tails_local, std::memory_order_relaxed);
     auto stop_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop_time - start_time);
-    total_time += (double)duration.count() / 1000000.0000;
+    total_time += duration.count();
 }
 
 int main() {
@@ -107,7 +110,7 @@ int main() {
         t.join();
     }
     std::cout <<"\nTotal heads = " << heads << "\nTotal tails = " << tails
-              << "\nTotal time = " << total_time << "\n";
+              << "\nTotal time = " << total_time << "μs\n";
 
     return 0;
 }
