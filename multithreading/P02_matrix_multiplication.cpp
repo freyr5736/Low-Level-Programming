@@ -33,7 +33,21 @@ void multiply_matrices(const std::vector<std::vector<int>> &A,const std::vector<
     }
 }
 
-
+void tiled_multiply(const std::vector<std::vector<int>> &A,const std::vector<std::vector<int>> &B,std::vector<std::vector<int>> &C, int tile_size, int n, int m, int p, int start_row, int end_row) {
+    for (int i = start_row; i < end_row; i += tile_size) {
+        for (int j = 0; j < p; j += tile_size) {
+            for (int k = 0; k < m; k += tile_size) {
+                for (int ii = i; ii < std::min(i + tile_size, end_row); ++ii) {
+                    for (int jj = j; jj < std::min(j + tile_size, p); ++jj) {
+                        for (int kk = k; kk < std::min(k + tile_size, m); ++kk) {
+                            C[ii][jj] += A[ii][kk] * B[kk][jj];
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 int main(){
     std::vector<std::vector<int>> A, B, C;
@@ -60,14 +74,28 @@ int main(){
 
     // Level #2
     // using thread pool to manage threads efficiently
+    // auto start_time = std::chrono::high_resolution_clock::now();
+    // thread_pool pool(10);
+    // int rows_per_task = n / 10;
+    // for (int i = 0; i < 10; ++i) {
+    //     int start_row = i * rows_per_task;
+    //     int end_row = (i == 10 - 1) ? n : start_row + rows_per_task;
+    //     pool.enqueue([&, start_row, end_row]() {
+    //         multiply_matrices(A, B, C, start_row, end_row);
+    //     });
+    // }
+
+    // Level #3
+    // tiled matrix multiplication with thread pool
     auto start_time = std::chrono::high_resolution_clock::now();
     thread_pool pool(10);
     int rows_per_task = n / 10;
-    for (int i = 0; i < 10; ++i) {
+    int tile_size = 10;
+    for(int i=0;i<10;++i){
         int start_row = i * rows_per_task;
         int end_row = (i == 10 - 1) ? n : start_row + rows_per_task;
         pool.enqueue([&, start_row, end_row]() {
-            multiply_matrices(A, B, C, start_row, end_row);
+            tiled_multiply(A, B, C, tile_size, n, m, p, start_row, end_row);
         });
     }
     auto stop_time = std::chrono::high_resolution_clock::now();
