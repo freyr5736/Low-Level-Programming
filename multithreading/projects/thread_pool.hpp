@@ -23,11 +23,20 @@ class thread_pool {
                         task = std::move(tasks.front()); // extract the task
                         tasks.pop(); // remove task from the queue
                     }
+                    // track active task
+                    active_tasks.fetch_add(1, std::memory_order_relaxed);
                     // if i donot use scopes, then it will run task with lock
-                    // which can create deadlock alternative is to unlock before
-                    // running the task and lock after that but it creates
-                    // overhead
+                    // which can create deadlock, alternative is to unlock before
+                    // running the task and lock after that but it creates overhead
                     task(); // execute the task
+
+                    // mark task as done
+                    active_tasks.fetch_sub(1, std::memory_order_relaxed);
+
+                    // wake up any waiters
+                    std::unique_lock<std::mutex> wait_lock(wait_mutex);
+                    if (tasks.empty() && active_tasks.load() == 0)
+                        cv_wait.notify_all();
                 }
             });
         }
@@ -67,11 +76,20 @@ class thread_pool {
         cv_task.notify_one();
         return res;
     }
-
+    // often return too early before tasks are finished.
     // void pool_wait() {
     //     std::unique_lock<std::mutex> lock(q_mutex);
     //     cv_task.wait(lock, [this] { return tasks.empty(); });
     // }
+
+    void wait_for_tasks() {
+        std::unique_lock<std::mutex> lock(wait_mutex);
+        cv_wait.wait(lock, [this]() {
+            std::unique_lock<std::mutex> q_lock(q_mutex);
+            return tasks.empty() && active_tasks.load() == 0;
+        });
+    }
+    
 
     ~thread_pool() {
         std::unique_lock<std::mutex> lock(q_mutex);
@@ -89,9 +107,11 @@ class thread_pool {
   private:
     std::vector<std::thread> all_threads;
     std::queue<std::function<void()>>
-        tasks; // can send anything inside the queue that is what
-               // function<void()> is
+        tasks; // can send anything inside the queue that is what function<void()> is
     std::mutex q_mutex;
     std::condition_variable cv_task;
+    std::atomic<size_t> active_tasks{0};
+    std::condition_variable cv_wait;
+    std::mutex wait_mutex;
     bool stop{false};
 };
