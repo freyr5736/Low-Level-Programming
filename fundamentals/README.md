@@ -19,37 +19,37 @@ The implementations in this repository explore areas such as:
 
 ## Implemented Components
 
-* **Custom Vector Implementation**
+* **Custom Vector Implementation: **
   A handcrafted dynamic array to understand memory growth, allocation, and element management.
 
-* **Arena Allocator**
+* **Arena Allocator: **
   A fast allocation strategy using pre-allocated memory blocks.
 
-* **Circular Queue**
+* **Circular Queue: **
   Fixed-size queue implementation with wrap-around indexing.
 
-* **CRTP Usage**
+* **CRTP Usage: **
   Exploration of the Curiously Recurring Template Pattern for static polymorphism.
 
-* **Market Data Tick Structure**
+* **Market Data Tick Structure: **
   A low-level data representation focused on performance and layout.
 
-* **Custom Iterator**
+* **Custom Iterator: **
   Iterator implementation to understand traversal and STL compatibility.
 
-* **Reflection and Serialization Concepts**
+* **Reflection and Serialization Concepts: **
   Experiments with compile-time and runtime metadata handling.
 
-* **Tag Dispatching**
+* **Tag Dispatching: **
   Use of tag types to influence overload resolution and behavior.
 
-* **Tracking Allocator** 
+* **Tracking Allocator: ** 
   Custom allocator used to monitor memory usage and allocation patterns.
 
-* **Trie Data Structure**
+* **Trie Data Structure: **
   Tree-based structure optimized for prefix-based lookups.
 
-* **VTable Stripping / Polymorphism Exploration**
+* **VTable Stripping / Polymorphism Exploration: **
   Investigation into virtual tables, object layout, and polymorphic overhead.
 
 ---
